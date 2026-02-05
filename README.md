@@ -93,3 +93,46 @@ with uv:
     uv run streamlit run app.py
 ```
 
+## Demo
+
+Below are two samples of receipts read by this application using four models: Gemini, Donut, Florence, and PaddleOCR.
+
+### Receipt 1
+
+![receipt1](demo/receipt1.jpg)
+
+Gemini result:
+
+![gemini1](demo/gemini1.png)
+
+Donut result:
+
+![donut1](demo/donut1.png)
+
+Florence result:
+
+![florence1](demo/florence1.png)
+
+PaddleOCR result:
+
+![paddleocr1](demo/paddleocr1.png)
+
+### Receipt 2
+
+![receipt2](demo/receipt2.jpeg)
+
+Gemini result:
+
+![gemini2](demo/gemini2.png)
+
+Donut result:
+
+![donut2](demo/donut2.png)
+
+Florence result:
+
+![florence2](demo/florence2.png)
+
+PaddleOCR result:
+
+![paddleocr2](demo/paddleocr2.png)
