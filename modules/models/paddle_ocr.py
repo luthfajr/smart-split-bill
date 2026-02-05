@@ -10,11 +10,7 @@ class PaddleOCRModel(AIModel):
         self.ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
 
     def run(self, image: Image.Image) -> ReceiptData:
-        # 1. Prepare Image
         img_array = np.array(image.convert("RGB"))
-        
-        # 2. Run OCR
-        # result is a list of [box, (text, confidence)]
         result = self.ocr.ocr(img_array, cls=True)
         
         raw_elements = []
@@ -22,23 +18,30 @@ class PaddleOCRModel(AIModel):
             for line in result[0]:
                 box = line[0]
                 text = line[1][0]
-                # Use the center Y-coordinate for more stable line grouping
-                y_center = (box[0][1] + box[2][1]) / 2
+                # Calculate center Y and height of the text box
+                y_top = box[0][1]
+                y_bottom = box[2][1]
+                y_center = (y_top + y_bottom) / 2
+                height = y_bottom - y_top
                 x_start = box[0][0]
-                raw_elements.append({"text": text, "y": y_center, "x": x_start})
+                raw_elements.append({"text": text, "y": y_center, "x": x_start, "h": height})
 
-        # 3. Group fragments into horizontal lines
-        # Sort by Y, then group items within 20 pixels of each other
-        lines = self._group_text_to_lines(raw_elements)
+        # Dynamic threshold based on average text height
+        if raw_elements:
+            avg_height = sum(e['h'] for e in raw_elements) / len(raw_elements)
+            # Group items only if they are within 40% of the text height vertically
+            threshold = avg_height * 0.4 
+        else:
+            threshold = 10
+
+        lines = self._group_text_to_lines(raw_elements, threshold=threshold)
         
-        # Debug: Print to terminal to see what Paddle detected
-        print("--- PaddleOCR Detected Lines ---")
+        print("--- PaddleOCR Grouped Lines ---")
         for l in lines: print(l)
         print("--------------------------------")
 
-        # 4. Parse lines into ReceiptData
         return self._formatting(lines)
-
+    
     def _group_text_to_lines(self, elements, threshold=20):
         if not elements: return []
         
@@ -90,8 +93,10 @@ class PaddleOCRModel(AIModel):
                 elif any(k in lower_name for k in ["tax", "pajak", "service", "sub", "disc", "pax", "qty"]):
                     continue
                 elif len(name_part) > 2:
-                    # Clean up trailing numbers from name (like the Quantity '1')
+                    # Clean quantity "1 " from start or end
+                    name_part = re.sub(r'^\d+\s+', '', name_part)
                     name_part = re.sub(r'\s+\d+$', '', name_part)
+
                     items.append(ItemData(name=name_part, count=1, total_price=clean_price))
 
         # Fallback: Sum items if no total found
