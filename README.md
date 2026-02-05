@@ -1,5 +1,7 @@
 # Aplikasi Split Bill
 
+Video demo singkat: https://youtu.be/h8hUedx-YhA
+
 Repositori ini berisi aplikasi berbasis AI untuk membagi tagihan (*split-bill*), ditulis dalam bahasa Python (Streamlit) dan dapat dijalankan di komputer lokal Anda.
 
 Atas izin dari: https://github.com/MukhlasAdib
